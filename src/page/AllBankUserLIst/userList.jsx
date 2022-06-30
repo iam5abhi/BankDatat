@@ -1,176 +1,94 @@
-import React, { useState, useEffect } from "react";
-import { styled } from "@mui/material/styles";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import Box from "@mui/material/Box";
-import LinearProgress from "@mui/material/LinearProgress";
-import configUrl from "../../config/BaseUrl";
-import NavBar from "../../Componet/Navbar";
-import {ToastContainer,toast} from 'react-toastify'
-
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  // hide last border
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
-
-export default function UserList() {
-  const navigate = useNavigate();
-  const [accontdetails, setAccountDetails] = useState()
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState();
-
-  const fetchUser = async () => {
-    try {
-      const response = await fetch(`${configUrl.ApiUrl}/getAllBankUser`, {
-        credentials: "include",
-      });
-      const data = await response.json();
-      setAccountDetails(data.user);
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setError(error.message);
-      setLoading(false);
-    }
-  };
-
-
-
-
-  useEffect(() => {
-    fetchUser();
-  },[]);
-
-
-  if (loading) {
-    return (
-      <Box sx={{ width: "100%" }}>
-        <LinearProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return <p>There was an error loading your data!</p>;
-  }
-  const getAccountDetails = (accountnumber) => {
-    navigate(`/statement/${accountnumber}`);
-  };
-
-  const copyAccountdetail = (accountnumber) => {
-    axios.get(`${configUrl.ApiUrl}/copy/accountnumber/alldata/${accountnumber}`)
-    .then(res=>{
-        toast.success('data copy sucessfull')
-         window.location.reload()
-    })
-    .catch(err => {
-      toast.error(err.message)
-    })
-    window.location.reload()
+import React,{useState,useEffect} from 'react'
+import './add.css'
+import Button from '@mui/material/Button';
+import axios from 'axios'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import configUrl from '../../config/BaseUrl';
+import NavBar from '../../Componet/Navbar';
+import { useNavigate } from 'react-router-dom';
+const AddBankAccount =()=>{
+  const navigate =useNavigate()
+   const [addToBank, setAddToBank] = useState({name:'',Address:'',AccountNumber:'',IFSC:'',Branch_MICR_Code:'',Branch_GSTIN:'',Customer_Number:'',AccountOpenBlance:'',Date:'',EffectiveDate:'',Branch:'Branch',Description:'',DepositAmount:''})
+   const inputHandler =(event)=>{
+       const {name,value} =event.target
+       setAddToBank((preSate)=>({
+            ...preSate,
+            [name]:value
+       }))
     
-  };
+   }
 
-  const deleteAccoundetails =(accountnumber)=>{
-    const filteredArray = accontdetails.filter((data) => {
-      console.log(data);
-      return data.AccountNumber != accountnumber;
-    });
+        const submitdata =(event)=>{
+            event.preventDefault();
+            axios.post(`${configUrl.ApiUrl}/`,addToBank)
+            .then((res)=>{
+                toast.success('account added sucssfully')
+                navigate('/userlist')
+            }).catch(err=>{
+                toast.error('not added  fails')
+            })
+        }
+  console.log(addToBank)
+    
+   
+    return(
+        <>
+       <NavBar/>
+        <div className="row">
+     <div className="container">
+      <form onSubmit={submitdata}>    
+            <label for="fname"> Name</label>
+            <input type="text" id="fname" name="name" onChange={inputHandler} placeholder="Enter your name"/>
 
-    setAccountDetails(filteredArray);
+            <label for="adr"> Address</label>
+            <input type="text" id="adr" name="Address" onChange={inputHandler} placeholder="Enter your address"/>
 
-      axios.delete(`${configUrl.ApiUrl}/delete/accountnumber/${accountnumber}`)
-      .then(res => {
-        toast.success('delete data Sucessfully')
-      })
-      .catch(err => {
-           toast.error(err.message)
-      })
-  }
+            <label for="accnum">Account number</label>
+            <input type="text" id="accnum" name="AccountNumber" onChange={inputHandler} placeholder="1111-2222-3333-4444"/>
+
+            <label for="ifsc">IFSC code</label>
+            <input type="text" id="ifsc" name="IFSC" onChange={inputHandler} placeholder="Enter IFSC"/>
+
+            <label for="bmicr">Branch MICR code</label>
+            <input type="text" id="bmicr" name="Branch_MICR_Code" onChange={inputHandler} placeholder="Enter Branch MICR"/>
+
+            <label for="bgstin">Branch GSTIN</label>
+            <input type="text" id="bgstin" name="Branch_GSTIN" onChange={inputHandler} placeholder="Enter Branch GSTIN"/>
+
+            <label for="customernum">Customer number</label>
+            <input type="text" id="customernum" name="Customer_Number" onChange={inputHandler} placeholder="Enter customer number"/>
+
+            <label for="ptype"> Product Type</label>
+            <input type="text" id="ptype" name="ProductType" onChange={inputHandler} placeholder="Product Type"/>
+
+            
+            <label for="aobalance"> Account Opening Balance</label>
+            <input type="text" id="aobalance" name="AccountOpenBlance" onChange={inputHandler} placeholder="Account Opening Balance"/>
 
 
-  return (
-    <>
-      <NavBar/>
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 700 }} aria-label="customized table">
-          <TableHead>
-            <TableRow>
-              <StyledTableCell>Sr.no.</StyledTableCell>
-              <StyledTableCell align="right">Name</StyledTableCell>
-              <StyledTableCell align="right">Account number</StyledTableCell>
-              <StyledTableCell align="right">Show</StyledTableCell>
-              <StyledTableCell align="right">copydata</StyledTableCell>
-              <StyledTableCell align="right">Delete</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {accontdetails.map((row, id) => (
-              <StyledTableRow key={row._id}>
-                <StyledTableCell component="th" scope="row">
-                  {id + 1}
-                </StyledTableCell>
-                <StyledTableCell align="right">{row.name}</StyledTableCell>
-                <StyledTableCell align="right">
-                  {row.AccountNumber}
-                </StyledTableCell>
-                <StyledTableCell align="right">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => getAccountDetails(row.AccountNumber)}
-                  >
-                    <i className="far fa-eye" />
-                  </button>
-                </StyledTableCell>
+            <label for="date">Date</label>
+            <input type="date" id="date" name="Date"  onChange={inputHandler} placeholder="Choose date"/><br/><br/>
 
-                <StyledTableCell align="right">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => copyAccountdetail(row.AccountNumber)}
-                  >
-                    <i className="far fa-copy" />
-                  </button>
-                </StyledTableCell>
+            <label for="edate">Effective Date</label>
+            <input type="date" id="edate" name="EffectiveDate"  onChange={inputHandler} placeholder="Choose effective date"/><br/><br/>
 
-                <StyledTableCell align="right">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => deleteAccoundetails(row.AccountNumber)}
-                  >
-                    <i className="far fa-trash-can" />
-                  </button>
-                </StyledTableCell>
-              </StyledTableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <ToastContainer/>
+            <label for="branch"> Branch</label>
+            <input type="text" id="branch" name="Branch" onChange={inputHandler} placeholder="Enter Branch"/>
+
+            <label for="description"> Description</label>
+            <input type="text" id="description" name="Description" onChange={inputHandler} placeholder="Add description"/>
+
+            <label for="dammount">Deposite Ammount</label>
+            <input type="text" id="dammount" name="DepositAmount" onChange={inputHandler} placeholder="Enter Despositing Ammount"/>
+            <Button type='submit' variant="contained">Add Account </Button>
+      </form>
+      </div>
+      <ToastContainer />
+    </div>
     </>
-  );
+    )
 }
 
+
+export default AddBankAccount
