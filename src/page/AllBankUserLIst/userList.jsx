@@ -13,6 +13,7 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import configUrl from "../../config/BaseUrl";
 import NavBar from "../../Componet/Navbar";
+import {ToastContainer,toast} from 'react-toastify'
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -55,6 +56,9 @@ export default function UserList() {
     }
   };
 
+
+
+
   useEffect(() => {
     fetchUser();
   },[]);
@@ -76,10 +80,35 @@ export default function UserList() {
   };
 
   const copyAccountdetail = (accountnumber) => {
-    axios.get(
-      `${configUrl.ApiUrl}/copy/accountnumber/alldata/${accountnumber}`
-    );
+    axios.get(`${configUrl.ApiUrl}/copy/accountnumber/alldata/${accountnumber}`)
+    .then(res=>{
+        toast.success('data copy sucessfull')
+         window.location.reload()
+    })
+    .catch(err => {
+      toast.error(err.message)
+    })
+    window.location.reload()
+    
   };
+
+  const deleteAccoundetails =(accountnumber)=>{
+    const filteredArray = accontdetails.filter((data) => {
+      console.log(data);
+      return data.AccountNumber != accountnumber;
+    });
+
+    setAccountDetails(filteredArray);
+
+      axios.delete(`${configUrl.ApiUrl}/delete/accountnumber/${accountnumber}`)
+      .then(res => {
+        toast.success('delete data Sucessfully')
+      })
+      .catch(err => {
+           toast.error(err.message)
+      })
+  }
+
 
   return (
     <>
@@ -93,6 +122,7 @@ export default function UserList() {
               <StyledTableCell align="right">Account number</StyledTableCell>
               <StyledTableCell align="right">Show</StyledTableCell>
               <StyledTableCell align="right">copydata</StyledTableCell>
+              <StyledTableCell align="right">Delete</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -124,11 +154,23 @@ export default function UserList() {
                     <i className="far fa-copy" />
                   </button>
                 </StyledTableCell>
+
+                <StyledTableCell align="right">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => deleteAccoundetails(row.AccountNumber)}
+                  >
+                    <i className="far fa-trash-can" />
+                  </button>
+                </StyledTableCell>
               </StyledTableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+      <ToastContainer/>
     </>
   );
 }
+
